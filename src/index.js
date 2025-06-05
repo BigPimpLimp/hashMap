@@ -29,13 +29,20 @@ class HashMap {
     if (this.entries > (this.capacity * this.loadFactor)) {
       console.log('here');
     }
-    if (this.capacity[index]) {
-      console.log('value is already here')
-      
+    if (!this.capacity[index]) {
+      console.log('helpppp')
+      this.capacity[index] = new linkedList();
+      this.capacity[index].append(value);
+      console.log(`List here ${this.capacity[index].head}`)
+      // this.capacity[index] = list.head;
+      console.log(`Yoooo ${this.capacity[index]}`);
+      return;
     }
-    this.capacity[index] = value;
-    console.log(this.capacity[index]);
-		
+    else if (this.capacity[index]) {
+      this.capacity[index].append(value);
+      console.log(this.capacity[index])
+      return;
+    }
 	}
 
 	get(key) {
@@ -46,6 +53,68 @@ class HashMap {
     return this.capacity;
   }
 }
+
+
+class linkedList {
+  constructor(head = null, tail = null) {
+    this.head = head;
+    this.tail = tail;
+    this.size = 0;
+  }
+
+  append(value) {
+    const element = new node(value);
+    if (!this.head) {
+      this.head = element;
+      this.size++;
+    } else {
+      let current = this.head;
+      while (current.nextNode) {
+        current = current.nextNode;
+      }
+      current.nextNode = element;
+      this.tail = element;
+      this.size++;
+    }
+  }
+
+  returnHead() {
+    return this.head.value;
+  }
+
+  returnTail() {
+    return this.tail.value;
+  }
+
+  pop() {
+    let current = this.head;
+    while (current) {
+      if (current.nextNode === this.tail) {
+        this.tail = current;
+        current.nextNode = null;
+      }
+      current = current.nextNode;
+    }
+  }
+  
+  toString() {
+    let string = `( ${this.head.value} )`;
+    let current = this.head;
+    while (current.nextNode) {
+      string += ` -> ( ${current.nextNode.value} )`;
+      current = current.nextNode;
+    }
+
+  }
+}
+
+class node {
+  constructor(value = null, nextNode = null) {
+    this.value = value;
+    this.nextNode = nextNode;
+  }
+}
+
 
 const test = new HashMap();
 console.log(test.getCap());
