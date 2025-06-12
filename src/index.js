@@ -15,28 +15,22 @@ class HashMap {
     const primeNumber = 31;
     for (let i = 0; i < key.length; i++) {
       hashCode = primeNumber * hashCode + key.charCodeAt(i);
-      console.log(`Hash: code ${hashCode}`);
     }
-    console.log(hashCode);
-    return hashCode % this.capacity.length; //When loadfactor is exceeded, length is extended
-    //and causes issues with get() returning correct bucket
-    //Instead of extending current array, I may need to create
-    //a new one that is double the size the copy current nodes
-    //evenly across.
+    return hashCode % this.capacity.length;
   }
 
   set(key, value) {
     const index = this.hash(key);
-    console.log(index);
     this.entries++;
-    console.log(`Amount of entries: ${this.entries}`);
 
     if (this.entries > this.capacity.length * this.loadFactor) {
-      console.log("entries exceeded load factor");
-      this.capacity.length = this.capacity.length * 2;
-      let arr = [];
-      arr.length = this.capacity.length * 2;
-      arr.forEach((e) => {});
+      console.log("---- Load factor exceeded ----");
+      const copy = this.nodes();
+      this.clear(this.capacity.length * 2); //Clears all key and value pairs and doubles capacity size
+      this.entries = 0;
+      copy.forEach((e) => {
+        this.set(e.key, e.value);
+      });
     }
     if (!this.capacity[index]) {
       this.capacity[index] = new linkedList();
@@ -50,19 +44,16 @@ class HashMap {
   }
 
   get(key) {
-    console.log(key);
     let index = this.hash(key);
-    console.log(index);
-    console.log(this.capacity[index].key);
+    if (this.capacity[index] === null) {
+      return null;
+    }
     if (this.capacity[index].head.key === key) {
       return this.capacity[index].head.value;
     }
-    let current = this.capacity[index].head.key;
-    console.log(`Look here bruh ${current}`); //This is returning null
     if (this.capacity[index].head.nextNode) {
       let current = this.capacity[index].head.nextNode;
-      console.log(`Look here bruh ${current.key}`);
-      while (current.nextNode) {
+      while (current) {
         if (current.key === key) {
           return current.value;
         }
@@ -70,8 +61,108 @@ class HashMap {
       }
       return null;
     }
-
     return null;
+  }
+
+  has(key) {
+    if (this.get(key)) {
+      return true;
+    }
+    return false;
+  }
+
+  remove(key) {
+    if (!this.has(key)) {
+      return false;
+    }
+    let index = this.hash(key);
+    let current = this.capacity[index].head;
+    this.capacity[index] = null;
+
+    const nodes = [];
+    while (current) {
+      if (current.key === key) {
+        current = current.nextNode;
+        continue;
+      }
+      nodes.push(current);
+      current = current.nextNode;
+    }
+    nodes.forEach((e) => {
+      if (!e) return;
+      this.set(e.key, e.value);
+    });
+    return true;
+  }
+
+  length() {
+    let count = 0;
+    this.capacity.forEach((e) => {
+      if (e) {
+        count += e.size;
+      }
+    });
+    return count;
+  }
+
+  clear(size) {
+    this.capacity = Array(size).fill(null);
+  }
+
+  keys() {
+    const arr = [];
+    this.capacity.forEach((e) => {
+      if (!e) {
+        return;
+      }
+      if (e.size > 1) {
+        let current = e.head;
+        while (current.nextNode) {
+          arr.push(current.key);
+          current = current.nextNode;
+        }
+      }
+      arr.push(e.head.key);
+    });
+    return arr;
+  }
+
+  values() {
+    const arr = [];
+    this.capacity.forEach((e) => {
+      if (!e) {
+        return;
+      }
+      if (e.size > 1) {
+        let current = e.head;
+        while (current.nextNode) {
+          arr.push(current.value);
+          current = current.nextNode;
+        }
+      }
+      arr.push(e.head.value);
+    });
+    return arr;
+  }
+
+  nodes() {
+    const arr = [];
+    this.capacity.forEach((e) => {
+      if (!e) {
+        return;
+      }
+      if (e.size > 1) {
+        let current = e.head;
+        while (current.nextNode) {
+          arr.push(current);
+          current = current.nextNode;
+        }
+        arr.push(e.tail);
+        return;
+      }
+      arr.push(e.head);
+    });
+    return arr;
   }
 
   getCap() {
@@ -92,53 +183,23 @@ class linkedList {
     if (!this.head) {
       this.head = element;
       this.size++;
+      return;
     } else {
       let current = this.head;
-      // console.log(`Current key here ${current.key} current value ${current.value}`)
-      // console.log(`Element key here ${element.key} element value ${element.value}`)
       while (current.nextNode) {
         if (element.key === current.key) {
-          console.log("mother fuckkkkk");
           current.value = element.value;
+          return;
         }
         current = current.nextNode;
       }
       if (element.key === current.key) {
-        console.log("fuckkkkk");
         current.value = element.value;
         return;
       }
       current.nextNode = element;
       this.tail = element;
       this.size++;
-    }
-  }
-
-  returnHead() {
-    return this.head.value;
-  }
-
-  returnTail() {
-    return this.tail.value;
-  }
-
-  pop() {
-    let current = this.head;
-    while (current) {
-      if (current.nextNode === this.tail) {
-        this.tail = current;
-        current.nextNode = null;
-      }
-      current = current.nextNode;
-    }
-  }
-
-  toString() {
-    let string = `( ${this.head.value} )`;
-    let current = this.head;
-    while (current.nextNode) {
-      string += ` -> ( ${current.nextNode.value} )`;
-      current = current.nextNode;
     }
   }
 }
@@ -152,14 +213,6 @@ class node {
 }
 
 const test = new HashMap();
-console.log(test.getCap());
-test.set("Sara", "blue");
-test.set("raSa");
-test.set("Rama", "orange");
-test.set("Sita", "glue");
-test.set("Leviia42345", "orange");
-test.set("Levi", "blue");
-test.set("Levi", "red");
 test.set("apple", "red");
 test.set("banana", "yellow");
 test.set("carrot", "orange");
@@ -172,5 +225,15 @@ test.set("ice cream", "white");
 test.set("jacket", "blue");
 test.set("kite", "pink");
 test.set("lion", "golden");
+test.set("noil", "bahaha");
+test.set("moon", "silver");
+test.set("love", "karah");
+test.set("levi", "kjahsfd");
+test.set("kajshflaksjhdff", "blue");
 console.log(test.getCap());
-console.log(test.get("dog")); //This is returning null for some reason
+console.log(test.nodes());
+test.remove("dog");
+
+console.log(test.remove("lion"));
+test.set("lion", "orange");
+console.log(test.getCap());
